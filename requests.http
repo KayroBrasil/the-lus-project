@@ -1,0 +1,69 @@
+### Configuração das variáveis
+@baseUrl = https://equipe-13-backend-trilhas-desafio-5.onrender.com
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im5vN1huMjV3azFrNFhvRHEyUFNYIiwiZW1haWwiOiJqb2FvLnNpbHZhQGVtYWlsLmNvbSIsIm5hbWUiOiJKb8OjbyBTaWx2YSBTYW50b3MiLCJpYXQiOjE3NTEyMDk0OTQsImV4cCI6MTc1MTIxMzA5NH0.Q_ai-aCt2T8lQngJYcupcZ2-mUexxTajDZOwqcblMH0
+@userId = Rh0My6jyUHIqZcowfrKt
+### ===========================================
+### AUTENTICAÇÃO
+### ===========================================
+
+### 1. Registrar novo usuário
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "João Silva Santos",
+  "email": "joao.silva@email.com",
+  "password": "senha123456"
+}
+
+### 2. Fazer login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "joao.silva@email.com",
+  "password": "senha123456"
+}
+
+### ===========================================
+### USUÁRIOS
+### ===========================================
+
+### 3. Listar todos os usuários
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### ===========================================
+### FAVORITOS
+### ===========================================
+
+### 4. Adicionar unidade de saúde aos favoritos
+POST {{baseUrl}}/favorites
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "{{userId}}",
+  "name": "Unidade de Saúde Exemplo",
+  "address": {
+    "logradouro": "Rua Exemplo",
+    "numero": "123",
+    "bairro": "Centro",
+    "cep": "12345-678",
+    "estado": "SP"
+  },
+  "longitude": -46.123456,
+  "latitude": -23.123456
+}
+
+### 5. Listar unidades favoritas de um usuário
+GET {{baseUrl}}/favorites?userId={{userId}}
+Authorization: Bearer {{token}}
+
+### ===========================================
+### UNIDADES DE SAÚDE
+### ===========================================
+
+### 6. Listar todas as unidades de saúde cadastradas
+GET {{baseUrl}}/health-units
+Authorization: Bearer {{token}}
