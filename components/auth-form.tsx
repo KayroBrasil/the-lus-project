@@ -25,6 +25,9 @@ import {
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LusLogo } from "@/components/ui/lus-logo";
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -46,20 +49,11 @@ const registerSchema = z
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface AuthFormProps {
-  onLogin: (data: LoginFormData) => void;
-  onRegister: (data: RegisterFormData) => void;
-  loading?: boolean;
-}
-
-export default function AuthForm({
-  onLogin,
-  onRegister,
-  loading = false,
-}: AuthFormProps) {
+export default function AuthForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const { login, register, isLoading } = useAuth();
+  const router = useRouter();
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -78,12 +72,38 @@ export default function AuthForm({
     },
   });
 
-  const onLoginSubmit = (data: LoginFormData) => {
-    onLogin(data);
+  const onLoginSubmit = async (data: LoginFormData) => {
+    try {
+      await login(data);
+      toast.success("Login realizado com sucesso!");
+
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao fazer login",
+      );
+    }
   };
 
-  const onRegisterSubmit = (data: RegisterFormData) => {
-    onRegister(data);
+  const onRegisterSubmit = async (data: RegisterFormData) => {
+    try {
+      await register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      toast.success("Cadastro realizado com sucesso!");
+
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao cadastrar usuário",
+      );
+    }
   };
 
   return (
@@ -209,10 +229,10 @@ export default function AuthForm({
                       <Button
                         type="submit"
                         className="w-full h-11"
-                        disabled={loading}
+                        disabled={isLoading}
                         onClick={loginForm.handleSubmit(onLoginSubmit)}
                       >
-                        {loading ? "Entrando..." : "Entrar"}
+                        {isLoading ? "Entrando..." : "Entrar"}
                       </Button>
                     </div>
                   </div>
@@ -351,10 +371,10 @@ export default function AuthForm({
                       <Button
                         type="submit"
                         className="w-full h-11"
-                        disabled={loading}
+                        disabled={isLoading}
                         onClick={registerForm.handleSubmit(onRegisterSubmit)}
                       >
-                        {loading ? "Criando conta..." : "Criar conta"}
+                        {isLoading ? "Criando conta..." : "Criar conta"}
                       </Button>
                     </div>
                   </div>
