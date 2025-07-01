@@ -53,7 +53,7 @@ Um sistema web moderno para localização e navegação até unidades de saúde,
 ### 1. Clone o repositório
 
 ```bash
-git clone git@github.com:KayroBrasil/desafio5_trilhas2B_frontend.git cd the-lus-project
+git clone https://github.com/KayroBrasil/the-lus-project.git cd the-lus-project
 ```
 
 ### 2. Instale as dependências
