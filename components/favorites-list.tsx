@@ -31,21 +31,21 @@ import {
   Calendar,
   Info,
 } from "lucide-react";
-import { useFavorites, FavoriteUnit } from "@/hooks/use-favorites";
+import { useFavorites, LocalFavorite } from "@/hooks/use-favorites";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface FavoritesListProps {
-  onSelectUnit?: (unit: FavoriteUnit) => void;
+  onSelectUnit?: (unit: LocalFavorite) => void;
 }
 
 export default function FavoritesList({ onSelectUnit }: FavoritesListProps) {
   const { favorites, loading, removeFavorite } = useFavorites();
-  const [selectedUnit, setSelectedUnit] = useState<FavoriteUnit | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<LocalFavorite | null>(null);
 
   if (loading) {
     return (
-      <div className="p-4 text-center">
+      <div className="flex items-center justify-center w-full h-full p-4 text-center">
         <p className="text-muted-foreground">Carregando favoritos...</p>
       </div>
     );
@@ -53,7 +53,7 @@ export default function FavoritesList({ onSelectUnit }: FavoritesListProps) {
 
   if (favorites.length === 0) {
     return (
-      <div className="p-8 text-center">
+      <div className="flex flex-col p-8 text-center items-center justify-center">
         <Heart className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
         <h3 className="text-lg font-medium text-foreground mb-2">
           Nenhum favorito ainda
@@ -84,7 +84,7 @@ export default function FavoritesList({ onSelectUnit }: FavoritesListProps) {
     removeFavorite(unitId);
   };
 
-  const handleSelectUnit = (unit: FavoriteUnit) => {
+  const handleSelectUnit = (unit: LocalFavorite) => {
     setSelectedUnit(unit);
     if (onSelectUnit) {
       onSelectUnit(unit);
