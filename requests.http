@@ -1,7 +1,9 @@
 ### Configuração das variáveis
 @baseUrl = https://equipe-13-backend-trilhas-desafio-5.onrender.com
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im5vN1huMjV3azFrNFhvRHEyUFNYIiwiZW1haWwiOiJqb2FvLnNpbHZhQGVtYWlsLmNvbSIsIm5hbWUiOiJKb8OjbyBTaWx2YSBTYW50b3MiLCJpYXQiOjE3NTEyMDk0OTQsImV4cCI6MTc1MTIxMzA5NH0.Q_ai-aCt2T8lQngJYcupcZ2-mUexxTajDZOwqcblMH0
-@userId = Rh0My6jyUHIqZcowfrKt
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IllIQnVLNlBQSnFXMlNJMGxoR1kyIiwiZW1haWwiOiJhbGV4QGVtYWlsLmNvbSIsIm5hbWUiOiJBbGV4YW5kcmUgU2FudG9zIiwiaWF0IjoxNzUxMjk2MzU4LCJleHAiOjE3NTEyOTk5NTh9.NsoMRQYRKCh1aNXzvbvev5-rsy_Arp0I2HfsReIk6AQ
+@userId = YHBuK6PPJqW2SI0lhGY2
+
+
 ### ===========================================
 ### AUTENTICAÇÃO
 ### ===========================================
@@ -11,9 +13,9 @@ POST {{baseUrl}}/register
 Content-Type: application/json
 
 {
-  "name": "João Silva Santos",
-  "email": "joao.silva@email.com",
-  "password": "senha123456"
+  "name": "Alexandre Santos",
+  "email": "alex@email.com",
+  "password": "alex@email.com"
 }
 
 ### 2. Fazer login
@@ -21,8 +23,8 @@ POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
-  "email": "joao.silva@email.com",
-  "password": "senha123456"
+  "email": "alex@email.com",
+  "password": "alex@email.com"
 }
 
 ### ===========================================
@@ -43,17 +45,22 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "userId": "{{userId}}",
-  "name": "Unidade de Saúde Exemplo",
-  "address": {
-    "logradouro": "Rua Exemplo",
-    "numero": "123",
-    "bairro": "Centro",
-    "cep": "12345-678",
-    "estado": "SP"
-  },
-  "longitude": -46.123456,
-  "latitude": -23.123456
+    "id": "AAAAAAAAAAAAAAAAAAA",
+    "name": "aaaaaaaaaaaaaaa Nadaaaaaaaaaaaaa De Exames De Média E Alta Complexidade - Pam Diamante",
+    "address": "R. João Luís, 3684 - Centro, São Luís - MA, 65020-904, Brazil",
+    "latitude": -2.5298224,
+    "longitude": -44.2905208,
+    "rating": 3.2,
+    "phoneNumber": "(98) 3198-2200",
+    "website": "http://www.saude.ma.gov.br/",
+    "types": [
+        "hospital",
+        "health",
+        "point_of_interest",
+        "establishment"
+    ],
+    "addedAt": "2025-06-30T00:45:05.258Z",
+    "userId": "YHBuK6PPJqW2SI0lhGY2"
 }
 
 ### 5. Listar unidades favoritas de um usuário
@@ -66,4 +73,8 @@ Authorization: Bearer {{token}}
 
 ### 6. Listar todas as unidades de saúde cadastradas
 GET {{baseUrl}}/health-units
+Authorization: Bearer {{token}}
+
+### 7. Remover favorito
+DELETE {{baseUrl}}/favorites/GUvRSkzQdqIv7gsgvSbY
 Authorization: Bearer {{token}}
