@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +47,41 @@ export default function HealthUnitDetails({
 }: HealthUnitDetailsProps) {
   const [activeTab, setActiveTab] = useState("info");
   const [photoIndex, setPhotoIndex] = useState(0);
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const [isFav, setIsFav] = useState(false);
+  const { toggleFavorite, checkIfFavorite } = useFavorites();
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      const isFavorited = await checkIfFavorite(unit.id);
+      setIsFav(isFavorited);
+    };
+
+    checkFavoriteStatus();
+  }, [unit.id, checkIfFavorite]);
+
+  // Escutar eventos de mudança nos favoritos
+  useEffect(() => {
+    const handleFavoriteChange = async (event: CustomEvent) => {
+      const { favoriteId } = event.detail;
+      if (favoriteId === unit.id) {
+        const newStatus = await checkIfFavorite(unit.id);
+        setIsFav(newStatus);
+      }
+    };
+
+    const handleFavoriteAdded = (event: Event) =>
+      handleFavoriteChange(event as CustomEvent);
+    const handleFavoriteRemoved = (event: Event) =>
+      handleFavoriteChange(event as CustomEvent);
+
+    window.addEventListener("favoriteAdded", handleFavoriteAdded);
+    window.addEventListener("favoriteRemoved", handleFavoriteRemoved);
+
+    return () => {
+      window.removeEventListener("favoriteAdded", handleFavoriteAdded);
+      window.removeEventListener("favoriteRemoved", handleFavoriteRemoved);
+    };
+  }, [unit.id, checkIfFavorite]);
 
   const formatType = (type: string) => {
     const typeMap: Record<string, string> = {
@@ -76,20 +110,20 @@ export default function HealthUnitDetails({
 
     try {
       if (typeof photo.getUrl === "function") {
-        const url = photo.getUrl({ maxWidth: 400, maxHeight: 300 });
+        const url = photo.getUrl({ maxWidth: 800, maxHeight: 600 });
         return url;
       } else if (
         photo.html_attributions &&
         photo.html_attributions.length > 0
       ) {
         if (typeof photo.getUrl === "function") {
-          return photo.getUrl({ maxWidth: 400, maxHeight: 300 });
+          return photo.getUrl({ maxWidth: 800, maxHeight: 600 });
         }
       } else if (typeof photo === "string") {
         return photo;
       } else {
         const url =
-          photo.getUrl && photo.getUrl({ maxWidth: 400, maxHeight: 300 });
+          photo.getUrl && photo.getUrl({ maxWidth: 800, maxHeight: 600 });
         if (url) {
           return url;
         }
@@ -126,7 +160,7 @@ export default function HealthUnitDetails({
       const destination = `${lat},${lng}`;
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${destination}&destination_place_id=${unit.id}`,
-        "_blank",
+        "_blank"
       );
     } catch (error) {
       console.error("Error opening directions:", error);
@@ -134,14 +168,17 @@ export default function HealthUnitDetails({
   };
 
   return (
-    <div className="bg-card flex flex-col h-96 animate-fadeIn p-4 md:px-2 border-t md:border-t-0">
-      <CardHeader className="flex flex-row items-start justify-between py-2 pb-2 border-b flex-shrink-0">
+    <div
+      className="bg-card flex flex-col animate-fadeIn border-t md:border-t-0 overflow-hidden"
+      style={{ height: "384px", minHeight: "384px", maxHeight: "384px" }}
+    >
+      <CardHeader className="flex flex-row items-start justify-between py-2 pb-2 mr-2 border-b flex-shrink-0 mb:px-0 px-4 md:pl-0">
         <div className="min-w-0 flex-1">
-          <CardTitle className="text-lg text-foreground truncate">
+          <CardTitle className="text-xl text-foreground truncate">
             {unit.name}
           </CardTitle>
-          <CardDescription className="flex items-start gap-1 mt-0.5 text-xs">
-            <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
+          <CardDescription className="flex items-start gap-1 mt-1">
+            <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <span className="truncate">{unit.address}</span>
           </CardDescription>
         </div>
@@ -149,51 +186,51 @@ export default function HealthUnitDetails({
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="flex-shrink-0 -mr-1 h-6 w-6"
+          className="flex-shrink-0 -mr-2"
         >
-          <X className="h-3 w-3" />
+          <X className="h-4 w-4" />
         </Button>
       </CardHeader>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden mb:px-0 md:pl-0 px-2 ">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="w-full flex flex-col flex-1"
+          className="w-full flex flex-col"
         >
-          <div className="py-2 pt-2 flex-shrink-0">
-            <TabsList className="w-full justify-start h-8">
+          <div className="py-2 px-2md:px-0 pt-2 flex-shrink-0">
+            <TabsList className="w-full justify-start">
               <TabsTrigger
                 value="info"
-                className="flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300 ease-in-out text-xs h-6"
+                className="flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300 ease-in-out"
               >
-                <Info className="h-3 w-3" />
+                <Info className="h-4 w-4" />
                 Informações
               </TabsTrigger>
               <TabsTrigger
                 value="photos"
-                className="flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300 ease-in-out text-xs h-6"
+                className="flex items-center gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300 ease-in-out"
               >
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-4 w-4" />
                 Fotos
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="flex-1 overflow-hidden min-h-0 h-[160px]">
+          <div className="flex-1 overflow-hidden h-72">
             <TabsContent
               value="info"
               className="data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-2 h-full"
             >
-              <ScrollArea className="h-full">
-                <div className="py-2 space-y-2 pb-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-medium text-foreground">
+              <ScrollArea className="h-full ">
+                <div className="py-2 space-y-3 md:px-0 px-2 ">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-foreground">
                         Distância
                       </div>
-                      <div className="flex items-center gap-1 text-xs">
-                        <Navigation className="h-3 w-3 text-muted-foreground" />
+                      <div className="flex items-center gap-1 text-sm">
+                        <Navigation className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="text-foreground">
                           {unit.distance || "Não disponível"}
                         </span>
@@ -201,8 +238,8 @@ export default function HealthUnitDetails({
                     </div>
 
                     {unit.rating !== undefined && (
-                      <div className="space-y-0.5">
-                        <div className="text-xs font-medium text-foreground">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-foreground">
                           Avaliação
                         </div>
                         <div className="flex items-center gap-1">
@@ -211,31 +248,31 @@ export default function HealthUnitDetails({
                             .map((_, i) => (
                               <Star
                                 key={i}
-                                className={`h-3 w-3 ${
+                                className={`h-4 w-4 ${
                                   i < Math.round(unit.rating || 0)
                                     ? "text-yellow-400 fill-yellow-400 dark:text-yellow-300 dark:fill-yellow-300"
                                     : "text-muted-foreground"
                                 }`}
                               />
                             ))}
-                          <span className="text-xs ml-1 text-foreground">
+                          <span className="text-sm ml-1 text-foreground">
                             {unit.rating}
                           </span>
                         </div>
                       </div>
                     )}
 
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-medium text-foreground">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-foreground">
                         Website
                       </div>
                       <div className="flex items-center gap-1">
-                        <Globe className="h-3 w-3 text-muted-foreground" />
+                        <Globe className="h-3.5 w-3.5 text-muted-foreground" />
                         <a
                           href={unit.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline max-w-[120px] truncate"
+                          className="text-sm text-primary hover:underline max-w-[160px] truncate"
                         >
                           {unit.website || "Não disponivel"}
                         </a>
@@ -243,8 +280,8 @@ export default function HealthUnitDetails({
                     </div>
 
                     {unit.types && unit.types.length > 0 && (
-                      <div className="space-y-0.5">
-                        <div className="text-xs font-medium text-foreground">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-foreground">
                           Tipo
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -254,14 +291,14 @@ export default function HealthUnitDetails({
                                 ![
                                   "point_of_interest",
                                   "establishment",
-                                ].includes(type),
+                                ].includes(type)
                             )
                             .slice(0, 2)
                             .map((type, index) => (
                               <Badge
                                 key={index}
                                 variant="secondary"
-                                className="text-[10px] px-1 py-0 h-4"
+                                className="text-xs"
                               >
                                 {formatType(type)}
                               </Badge>
@@ -271,13 +308,13 @@ export default function HealthUnitDetails({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-medium text-foreground">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-foreground">
                         Tempo estimado
                       </div>
-                      <div className="flex items-center gap-1 text-xs">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
+                      <div className="flex items-center gap-1 text-sm">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="text-foreground">
                           {unit.duration || "Não disponível"}
                         </span>
@@ -285,14 +322,14 @@ export default function HealthUnitDetails({
                     </div>
 
                     {unit.openNow !== undefined && (
-                      <div className="space-y-0.5">
-                        <div className="text-xs font-medium text-foreground">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-foreground">
                           Status
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Badge
                             variant={unit.openNow ? "outline" : "secondary"}
-                            className={`text-[10px] px-1 py-0 h-4 ${unit.openNow ? "text-green-600" : ""}`}
+                            className={unit.openNow ? "text-green-600" : ""}
                           >
                             {unit.openNow ? "Aberto" : "Fechado"}
                           </Badge>
@@ -301,15 +338,17 @@ export default function HealthUnitDetails({
                     )}
 
                     {unit.phoneNumber && (
-                      <div className="space-y-0.5">
-                        <div className="text-xs font-medium text-foreground">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-foreground">
                           Telefone
                         </div>
                         <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                           <a
-                            href={`tel:${unit.phoneNumber}`}
-                            className="text-xs text-primary hover:underline"
+                            href={`https://api.whatsapp.com/send?phone=${unit.phoneNumber?.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline"
                           >
                             {unit.phoneNumber}
                           </a>
@@ -321,20 +360,17 @@ export default function HealthUnitDetails({
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent
-              value="photos"
-              className="data-[state=active]:animate-in data-[state=active]:fade-in-50 data-[state=active]:slide-in-from-bottom-2 h-full"
-            >
+            <TabsContent value="photos" className="h-full">
               <ScrollArea className="h-full">
-                <div className="py-2 flex items-center justify-center h-full">
+                <div className="py-2">
                   {unit.photos &&
                   Array.isArray(unit.photos) &&
                   unit.photos.length > 0 ? (
-                    <div className="relative rounded-lg overflow-hidden h-[160px] w-full max-w-sm mx-auto">
+                    <div className="relative rounded-lg overflow-hidden h-44">
                       <img
                         src={getPhotoUrl(unit.photos[photoIndex])}
                         alt={`${unit.name} - foto ${photoIndex + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain bg-muted/20"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/placeholder.svg?height=300&width=400";
@@ -342,12 +378,12 @@ export default function HealthUnitDetails({
                       />
 
                       {unit.photos.length > 1 && (
-                        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-0.5">
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1">
                           {unit.photos.map((_, i) => (
                             <button
                               key={i}
                               onClick={() => setPhotoIndex(i)}
-                              className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                              className={`w-2 h-2 rounded-full transition-colors ${
                                 i === photoIndex ? "bg-white" : "bg-white/50"
                               }`}
                               aria-label={`Ver foto ${i + 1}`}
@@ -361,7 +397,7 @@ export default function HealthUnitDetails({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/40 text-white rounded-full p-0.5 h-6 w-6"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/40 text-white rounded-full p-1"
                             onClick={() => navigatePhotos(-1)}
                           >
                             <svg
@@ -374,7 +410,7 @@ export default function HealthUnitDetails({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="h-3 w-3"
+                              className="h-4 w-4"
                             >
                               <path d="m15 18-6-6 6-6" />
                             </svg>
@@ -382,7 +418,7 @@ export default function HealthUnitDetails({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/40 text-white rounded-full p-0.5 h-6 w-6"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/40 text-white rounded-full p-1"
                             onClick={() => navigatePhotos(1)}
                           >
                             <svg
@@ -395,7 +431,7 @@ export default function HealthUnitDetails({
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="h-3 w-3"
+                              className="h-4 w-4"
                             >
                               <path d="m9 18 6-6-6-6" />
                             </svg>
@@ -404,13 +440,13 @@ export default function HealthUnitDetails({
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-28 w-full max-w-sm mx-auto text-muted-foreground rounded-lg bg-muted/20 border-2 border-dashed border-muted">
-                      <Info className="h-6 w-6 mb-1 opacity-30" />
-                      <p className="text-xs font-medium">
+                    <div className="flex flex-col items-center justify-center h-44 text-muted-foreground rounded-lg bg-muted/20 border-2 border-dashed border-muted">
+                      <Info className="h-16 w-16 mb-4 opacity-30" />
+                      <p className="text-lg font-medium">
                         Nenhuma foto disponível
                       </p>
-                      <p className="text-[10px] mt-0.5">
-                        Esta unidade não possui fotos
+                      <p className="text-sm mt-1">
+                        Esta unidade de saúde não possui fotos no momento
                       </p>
                     </div>
                   )}
@@ -418,46 +454,32 @@ export default function HealthUnitDetails({
               </ScrollArea>
             </TabsContent>
           </div>
-        </Tabs>
-        <div className="pt-2 pb-2 bg-card flex-shrink-0">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant={isFavorite(unit.id) ? "default" : "outline"}
-              onClick={() => {
-                const isFav = toggleFavorite({
-                  id: unit.id,
-                  name: unit.name,
-                  address: unit.address,
-                  location: unit.location,
-                  rating: unit.rating,
-                  phoneNumber: unit.phoneNumber,
-                  website: unit.website,
-                  types: unit.types,
-                });
-                toast({
-                  title: isFav
-                    ? "Adicionado aos favoritos"
-                    : "Removido dos favoritos",
-                  description: isFav
-                    ? `${unit.name} foi adicionado à sua lista de favoritos`
-                    : `${unit.name} foi removido da sua lista de favoritos`,
-                });
-              }}
-              className="flex-1 h-8 text-xs"
-            >
-              <Heart
-                className={`h-3 w-3 mr-1 ${
-                  isFavorite(unit.id) ? "fill-current text-red-500" : ""
-                }`}
-              />
-              {isFavorite(unit.id) ? "Favoritado" : "Favoritar"}
-            </Button>
-            <Button onClick={openDirections} className="flex-1 h-8 text-xs">
-              <Navigation className="h-3 w-3 mr-1" />
-              Como chegar
-            </Button>
+
+          <div className="absolute inset-x-0 bottom-2 border-t pt-2 md:mr-2 px-4 md:px-0  bg-card flex-shrink-0 ">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant={isFav ? "default" : "outline"}
+                onClick={async () => {
+                  await toggleFavorite(unit);
+                  const newStatus = await checkIfFavorite(unit.id);
+                  setIsFav(newStatus);
+                }}
+                className="flex-1"
+              >
+                <Heart
+                  className={`h-4 w-4 mr-2 ${
+                    isFav ? "fill-current text-red-500" : ""
+                  }`}
+                />
+                {isFav ? "Favoritado" : "Favoritar"}
+              </Button>
+              <Button onClick={openDirections} className="flex-1">
+                <Navigation className="h-4 w-4 mr-2" />
+                Como chegar
+              </Button>
+            </div>
           </div>
-        </div>
+        </Tabs>
       </div>
     </div>
   );

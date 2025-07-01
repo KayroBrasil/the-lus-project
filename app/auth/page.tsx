@@ -1,79 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "@/components/auth-form";
-import { toast } from "sonner";
-
-type LoginData = {
-  email: string;
-  password: string;
-};
-
-type RegisterData = {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-};
+import { useAuth } from "@/lib/auth";
 
 export default function AuthPage() {
-  const [loading, setLoading] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
-  const handleLogin = async (data: LoginData) => {
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: data.email,
-          name: "Fulano de Tal",
-          isAuthenticated: true,
-        }),
-      );
-
-      toast.success("Login realizado com sucesso!");
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
       router.push("/");
-    } catch (error) {
-      toast.error("Erro ao fazer login. Verifique suas credenciais.");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [isLoading, isAuthenticated, router]);
 
-  const handleRegister = async (data: RegisterData) => {
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: data.email,
-          name: data.name,
-          isAuthenticated: true,
-        }),
-      );
-
-      toast.success("Conta criada com sucesso!");
-      router.push("/");
-    } catch (error) {
-      toast.error("Erro ao criar conta. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
-    <div className="auth-page">
-      <AuthForm
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        loading={loading}
-      />
+    <div className="min-h-screen bg-background">
+      <AuthForm />
     </div>
   );
 }
