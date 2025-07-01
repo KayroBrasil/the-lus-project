@@ -29,12 +29,12 @@ import {
   RefreshCw,
   Map as MapIcon,
   X,
+  Heart,
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import HealthUnitDetails from "./health-unit-details";
-import UserHeader from "./user-header";
 import FavoritesModal from "./favorites-modal";
-import { useFavorites } from "@/hooks/use-favorites";
+import { useFavorites, LocalFavorite } from "@/hooks/use-favorites";
 
 declare global {
   interface Window {
@@ -80,6 +80,22 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
   const distanceMatrixCache = useRef<Map<string, any>>(new Map());
   const { theme } = useTheme();
   const { toggleFavorite, isFavorite } = useFavorites();
+
+  const convertFavoriteToHealthUnit = (favorite: LocalFavorite): HealthUnit => {
+    return {
+      id: favorite.id,
+      name: favorite.name,
+      address: favorite.address,
+      location: new window.google.maps.LatLng(
+        favorite.latitude,
+        favorite.longitude
+      ),
+      rating: favorite.rating,
+      phoneNumber: favorite.phoneNumber,
+      website: favorite.website,
+      types: favorite.types,
+    };
+  };
 
   const formatDuration = (duration: string) => {
     return duration?.replace(/mins/g, "min") || "";
@@ -243,7 +259,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
               reject(error);
             }
           },
-          options,
+          options
         );
       };
 
@@ -303,7 +319,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
         } catch (locationError) {
           const defaultPos = new window.google.maps.LatLng(
             -2.5318674185944796,
-            -44.300045193733375,
+            -44.300045193733375
           );
           setUserLocation(defaultPos);
           setIsUsingDefaultLocation(true);
@@ -420,7 +436,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
         }
       });
     },
-    [],
+    []
   );
 
   const getDistanceMatrix = async (units: HealthUnit[], origin: any) => {
@@ -452,7 +468,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
             } else {
               reject(new Error(`Distance Matrix API error: ${status}`));
             }
-          },
+          }
         );
       });
 
@@ -541,7 +557,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
 
       animate();
     },
-    [map],
+    [map]
   );
 
   const getPlaceDetails = (placeId: string) => {
@@ -596,13 +612,13 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
 
           setHealthUnits((prev) =>
             prev.map((unit) =>
-              unit.id === placeId ? { ...unit, ...updatedUnit } : unit,
-            ),
+              unit.id === placeId ? { ...unit, ...updatedUnit } : unit
+            )
           );
         } else {
           console.error("Error getting place details:", status);
         }
-      },
+      }
     );
   };
 
@@ -750,7 +766,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
           fullscreenControl: false,
           streetViewControl: false,
           styles: getMapStyles(),
-        },
+        }
       );
 
       markers.current.forEach((marker) => {
@@ -798,16 +814,24 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
   ]);
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <UserHeader />
-
+    <div className="flex flex-col h-full bg-background">
       <header className="bg-card border-b py-3">
         <div className="hidden md:flex items-center">
           <div className="w-96 flex justify-start">
             <div className="w-full px-4">
               <FavoritesModal
                 onSelectUnit={(unit) => {
-                  setSelectedUnit(unit);
+                  const healthUnit = convertFavoriteToHealthUnit(unit);
+                  setSelectedUnit(healthUnit);
+
+                  if (map) {
+                    const position = new window.google.maps.LatLng(
+                      unit.latitude,
+                      unit.longitude
+                    );
+                    map.setCenter(position);
+                    map.setZoom(15);
+                  }
                 }}
               />
             </div>
@@ -831,7 +855,17 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
           <div className="flex-shrink-0">
             <FavoritesModal
               onSelectUnit={(unit) => {
-                setSelectedUnit(unit);
+                const healthUnit = convertFavoriteToHealthUnit(unit);
+                setSelectedUnit(healthUnit);
+
+                if (map) {
+                  const position = new window.google.maps.LatLng(
+                    unit.latitude,
+                    unit.longitude
+                  );
+                  map.setCenter(position);
+                  map.setZoom(15);
+                }
               }}
             />
           </div>
@@ -865,7 +899,7 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-xs border-orange-300 text-orange-700 dark:border-orange-600 dark:text-orange-300"
+                    className="text-[9px] md:text-xs border-orange-300 text-orange-700 dark:border-orange-600 dark:text-orange-300"
                   >
                     São Luís, MA
                   </Badge>
@@ -990,15 +1024,19 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
                       }}
                     >
                       <CardHeader className="p-3 pb-2 flex-shrink-0 min-w-0">
-                        <CardTitle className="card-title text-base font-semibold text-foreground leading-tight mb-1 break-words line-clamp-1 md:line-clamp-2 min-w-0">
-                          {unit.name}
-                        </CardTitle>
-                        <CardDescription className="card-description flex items-start gap-2 text-sm text-muted-foreground min-w-0">
-                          <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          <span className="leading-tight break-words line-clamp-1 md:line-clamp-2 min-w-0 overflow-hidden">
-                            {unit.address}
-                          </span>
-                        </CardDescription>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="card-title text-base font-semibold text-foreground leading-tight mb-1 break-words line-clamp-1 md:line-clamp-2 min-w-0">
+                              {unit.name}
+                            </CardTitle>
+                            <CardDescription className="card-description flex items-start gap-2 text-sm text-muted-foreground min-w-0">
+                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                              <span className="leading-tight break-words line-clamp-1 md:line-clamp-2 min-w-0 overflow-hidden">
+                                {unit.address}
+                              </span>
+                            </CardDescription>
+                          </div>
+                        </div>
                       </CardHeader>
                       <CardContent className="px-3 pb-3 pt-1 flex-1 flex flex-col justify-end min-w-0">
                         <div className="flex items-center justify-between gap-3 pt-2">
@@ -1052,20 +1090,27 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
             className="hidden md:block flex-1 rounded-lg mt-2 mr-2 mb-2"
           />
 
-          {selectedUnit && (
-            <div className="mb-2">
+          <div
+            className={
+              "w-full " +
+              (typeof window !== "undefined" && window.innerWidth < 768
+                ? "fixed md:hidden bottom-0 left-0 right-0 z-40"
+                : "")
+            }
+          >
+            {selectedUnit && (
               <HealthUnitDetails
                 unit={selectedUnit}
                 onClose={() => setSelectedUnit(null)}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {showMobileMap && (
-        <div className="md:hidden fixed inset-0 bg-background z-50">
-          <div className="bg-card border-b p-4 flex items-center justify-between">
+        <div className="md:hidden fixed inset-0 bg-background z-50 flex flex-col">
+          <div className="bg-card border-b p-4 flex items-center justify-between flex-shrink-0">
             <h2 className="text-lg font-semibold">Encontre Unidades no Mapa</h2>
             <Button
               variant="ghost"
@@ -1076,25 +1121,25 @@ export default function HealthUnitLocator({ apiKey }: HealthUnitLocatorProps) {
             </Button>
           </div>
 
-          <div className="h-full">
-            <div ref={mobileMapRef} className="flex w-full h-full" />
-          </div>
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1">
+              <div ref={mobileMapRef} className="w-full h-full" />
+            </div>
 
-          {selectedUnit && (
-            <div className="absolute bottom-0 left-0 right-0 max-h-[55vh] bg-card border-t overflow-hidden mobile-safe-bottom">
-              <div className="h-full overflow-y-auto">
+            {selectedUnit && (
+              <div className="bg-card border-t flex-shrink-0">
                 <HealthUnitDetails
                   unit={selectedUnit}
                   onClose={() => setSelectedUnit(null)}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
       <Button
-        className="md:hidden fixed right-6 z-40 h-14 w-14 rounded-full shadow-lg floating-button-safe"
+        className="md:hidden fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg floating-button-safe"
         onClick={() => setShowMobileMap(true)}
       >
         <MapIcon className="h-6 w-6 scale-[1.8]" />
