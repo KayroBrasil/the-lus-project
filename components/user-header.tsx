@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,37 +21,20 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./theme-provider";
+import { useAuth } from "@/lib/auth";
 import { LusLogo } from "@/components/ui/lus-logo";
-
-interface UserData {
-  name: string;
-  email: string;
-  phone?: string;
-  isAuthenticated: boolean;
-}
 
 interface UserHeaderProps {
   className?: string;
 }
 
 export default function UserHeader({ className }: UserHeaderProps) {
-  const [user, setUser] = useState<UserData | null>(null);
+  const { user, logout } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch {
-        setUser(null);
-      }
-    }
-  }, []);
-
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout();
     router.push("/auth");
   };
 

@@ -54,11 +54,27 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+
+  #__next,
+  [data-nextjs-scroll-focus-boundary] {
+    height: 100vh;
+    overflow: hidden;
   }
 }
 
