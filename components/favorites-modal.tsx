@@ -4,10 +4,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import FavoritesList from "./favorites-list";
-import { FavoriteUnit } from "@/hooks/use-favorites";
+import { LocalFavorite } from "@/hooks/use-favorites";
 
 interface FavoritesModalProps {
-  onSelectUnit?: (unit: FavoriteUnit) => void;
+  onSelectUnit?: (unit: LocalFavorite) => void;
 }
 
 export default function FavoritesModal({ onSelectUnit }: FavoritesModalProps) {
